@@ -1,0 +1,109 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Data.SqlClient;
+using System.Data;
+using WebMVC_crud.Models;
+
+
+namespace WebMVC_crud.Controllers
+{
+    public class ProductController : Controller
+    {
+        string constring = @"Data Source = PC1\SQLEXPRESS; Initial Catalog = db_MVC; User Id = sa; Password = livemore";
+        
+        [HttpGet]
+        public ActionResult Index()
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(constring))
+            {
+                conn.Open();
+                SqlDataAdapter da = new SqlDataAdapter("SELECT * FROM tbl_prod",conn);
+                da.Fill(dt);
+            }
+            return View(dt);
+        }
+
+        [HttpGet]
+        public ActionResult Create()
+        {
+            return View(new ProductModel());
+        }
+
+        [HttpPost]
+        public ActionResult Create(ProductModel promodel)
+        {
+            using(SqlConnection con = new SqlConnection(constring))
+            {
+                con.Open();
+                string que = "INSERT INTO tbl_prod VALUES(@productname,@price,@count)";
+                SqlCommand cmd = new SqlCommand(que,con);
+                cmd.Parameters.AddWithValue("@productname", promodel.productname);
+                cmd.Parameters.AddWithValue("@price", promodel.price);
+                cmd.Parameters.AddWithValue("@count", promodel.count);
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult Edit(int id)
+        {
+            ProductModel prodmodel = new ProductModel();
+            DataTable dt = new DataTable();
+            using(SqlConnection con = new SqlConnection(constring))
+            {
+                con.Open();
+                string que = "SELECT * FROM tbl_prod WHERE id = @id";
+                SqlDataAdapter da = new SqlDataAdapter(que,con);
+                da.SelectCommand.Parameters.AddWithValue("@id",id);
+                da.Fill(dt);
+            }
+            if(dt.Rows.Count == 1)
+            {
+                prodmodel.id = Convert.ToInt32(dt.Rows[0][0].ToString());
+                prodmodel.productname = dt.Rows[0][1].ToString();
+                prodmodel.price = Convert.ToDecimal(dt.Rows[0][2].ToString());
+                prodmodel.count = Convert.ToInt32(dt.Rows[0][3].ToString());
+                return View(prodmodel);
+            }
+            else
+            {
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public ActionResult Edit(ProductModel prodmodel)
+        {
+            using (SqlConnection con = new SqlConnection(constring))
+            {
+                con.Open();
+                string que = "UPDATE tbl_prod SET productname = @productname, price = @price, count = @count WHERE id = @id";
+                SqlCommand cmd = new SqlCommand(que, con);
+                cmd.Parameters.AddWithValue("@id", prodmodel.id);
+                cmd.Parameters.AddWithValue("@productname", prodmodel.productname);
+                cmd.Parameters.AddWithValue("@price", prodmodel.price);
+                cmd.Parameters.AddWithValue("@count", prodmodel.count);
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult Delete(int id)
+        {
+            using(SqlConnection con = new SqlConnection(constring))
+            {
+                con.Open();
+                string que = "DELETE FROM tbl_prod WHERE id = @id";
+                SqlCommand cmd = new SqlCommand(que, con);
+                cmd.Parameters.AddWithValue("@id",id);
+                cmd.ExecuteNonQuery();
+            }
+
+            return RedirectToAction("Index");
+        }
+    }
+}
