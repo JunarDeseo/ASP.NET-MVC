@@ -1,0 +1,21 @@
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Success</title>
+</head>
+<body>
+    <div> 
+        <h3>Success Page</h3>
+        Welcome @Session["username"]
+        <br>
+        <a href="@Url.Action("Logout", "Account")">Logout</a>
+    </div>
+</body>
+</html>
